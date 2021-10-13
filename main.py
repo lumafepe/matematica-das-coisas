@@ -50,11 +50,11 @@ ligaTodos(C,screen,L,nNodos)
 
 
 #nodos vazios
-'''
+
 while not verficaConecçoes(C,L):
     setpos(nNodos,C)
     ligaTodos(C,screen,L,nNodos)
-'''
+
 while running:
     for event in pygame.event.get():
         pygame.display.update()

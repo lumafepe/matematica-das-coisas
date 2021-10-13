@@ -43,12 +43,11 @@ def appendC(C,elem):
         C.append(elem)
 
 def verficaConecçoes(C,L):
-    for i in range(len(C)):
+    for i in range(len(C)-1):
         apareceu=False
         for j in L:
             if j[0]==i or j[2]==i:
                 apareceu=True
-                print('f')
                 break
         if not apareceu:
             return False
