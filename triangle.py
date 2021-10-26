@@ -24,7 +24,7 @@ def defpontos(circulo1,circulo2):
 def appendT(L,elem):
     c=True
     for i in L:
-        if (i[0]==elem[0] and i[1]==elem[1]) or (i[1]==elem[0] and i[0]==elem[1]):
+        if (i[0]==elem[0] and i[2]==elem[2]) or (i[2]==elem[0] and i[0]==elem[2]):
             c=False
             break
     if c:
@@ -43,11 +43,12 @@ def appendC(C,elem):
         C.append(elem)
 
 def verficaConecçoes(C,L):
-    for i in range(len(C)-1):
+    for i in range(len(C)):
         apareceu=False
         for j in L:
             if j[0]==i or j[2]==i:
                 apareceu=True
+                print('f')
                 break
         if not apareceu:
             return False
