@@ -1,15 +1,16 @@
+from math import factorial
 from typing import final
 import pygame
 import random
 import time
 from itertools import permutations
-from sys import maxsize
+from sys import _current_frames, maxsize
 from subprocess import PIPE,Popen
 from pygame import display
 from triangle import Pmedio, appendT,appendC, distancia, verficaConecçoes
 
 #cenas iniciais
-scalable=0.9
+scalable=1
 pygame.font.init()
 pygame.init()
 screen = pygame.display.set_mode((1000*scalable, 1000*scalable),0,1)
@@ -150,83 +151,62 @@ def arrange(list1):
 
 
 
-
-
-
-
-
-#tsp brute force algorithm
-def TSP_BruteForce(graph, s,screen):
-    V=len(graph)
-# store all vertex apart from source vertex
-    vertex = []
-    for i in range(V):
-        if i != s:
-            vertex.append(i)
-    # store minimum weight Hamiltonian Cycle
-    min_path = maxsize
-    next_permutation=permutations(vertex)
-    for i in next_permutation:
-        # store current Path weight(cost)
-        current_pathweight = 0
-        # compute current path weight
-        k = s
-        putCircles(C[0],0,GREEN,screen)
-        ja=0
-        for j in i:
-            current_pathweight += graph[k][j]
-            putLines(C[j],C[ja],GREEN,screen)
-            putCircles(C[j],j,GREEN,screen)
-            ja=j
-            time.sleep(sleepAmount)
-            k = j
-        current_pathweight += graph[k][s]
+def TSP_BruteForce(graph,screen):
+    vertex=[]
+    for i in range(1,len(graph)):
+        vertex.append(i)
+    bestPath = maxsize
+    permutation=permutations(vertex)
+    for i in permutation:
+        i=(0,*i,0)
         screen.fill(BLACK)
         for elem in Lc:
             putLines(C[elem[0]],C[elem[2]],LIGHTBLUE,screen)
             textsurface = myfont.render(str(elem[1]), False, WHITE)
             screen.blit(textsurface,Pmedio(C[elem[0]],C[elem[2]]))
         for l in range(1,len(C)):
-            putCircles(C[l],l,(255,0,0),screen)
-        # update minimum
-        min_path = min(min_path, current_pathweight)
-        if (min_path==current_pathweight):
-            bestpath=i
-    #pinta melhor
-    putCircles(C[0],0,GREEN,screen)
-    ja=0
-    for j in bestpath:
-        putLines(C[j],C[ja],GREEN,screen)
-        putCircles(C[j],j,GREEN,screen)
-        ja=j
-    putLines(C[0],C[ja],GREEN,screen)
-    putCircles(C[0],0,GREEN,screen)
-    return min_path
+            putCircles(C[l],l,RED,screen)
+        current_path=0
+        for k in range(0,len(i)-1):
+            current_path+=graph[i[k]][i[k+1]]
+            putLines(C[i[k]],C[i[k+1]],GREEN,screen)
+            putCircles(C[i[k]],i[k],GREEN,screen)
+            putCircles(C[i[k+1]],i[k+1],GREEN,screen)
+        if current_path<bestPath:
+            bestPath=current_path
+            bestPathP=i
+    return (bestPathP,bestPath)
+     
 
 
-def TSP_BruteForceTIME(graph, s):
-    start=time.time()
-    V=len(graph)
-    vertex = []
-    for i in range(V):
-        if i != s:
-            vertex.append(i)
-    min_path = maxsize
-    next_permutation=permutations(vertex)
-    for i in next_permutation:
-        current_pathweight = 0
-        k = s
-        for j in i:
-            current_pathweight += graph[k][j]
-            k = j
-        current_pathweight += graph[k][s]
-        min_path = min(min_path, current_pathweight)
-        if (min_path==current_pathweight):
-            bestpath=i
-    end=time.time()
-    return end-start
 
-
+def TSP_MC(graph,fac,screen):
+    vertex=[]
+    for i in range(1,len(graph)):
+        vertex.append(i)
+    bestPath = maxsize
+    p=4000000/fac
+    permutation=permutations(vertex)
+    for i in permutation:
+        if (random.random()<fac):
+            i=(0,*i,0)
+            screen.fill(BLACK)
+            for elem in Lc:
+                putLines(C[elem[0]],C[elem[2]],LIGHTBLUE,screen)
+                textsurface = myfont.render(str(elem[1]), False, WHITE)
+                screen.blit(textsurface,Pmedio(C[elem[0]],C[elem[2]]))
+            for l in range(1,len(C)):
+                putCircles(C[l],l,RED,screen)
+            current_path=0
+            for k in range(0,len(i)-1):
+                current_path+=graph[i[k]][i[k+1]]
+                putLines(C[i[k]],C[i[k+1]],GREEN,screen)
+                putCircles(C[i[k]],i[k],GREEN,screen)
+                putCircles(C[i[k+1]],i[k+1],GREEN,screen)
+            if current_path<bestPath:
+                bestPath=current_path
+                bestPathP=i
+    return (bestPathP,bestPath)
 
 
 
@@ -299,27 +279,45 @@ def setCAm(string):
 
 
 
-
 class sim():
     def __init__(self):
         pass
     def BF(self):
-        print(TSP_BruteForce(L5,0,screen))
+        cam,custo=TSP_BruteForce(L5,1,screen)
+        cam2=""
+        for i in cam:
+            cam2+=str(i)+"-"
+        self.rm()
+        setCAm(cam2[:-1])
+        print(custo)
+
+    def MC(self):
+        cam,custo=TSP_MC(L5,factorial(nNodos),screen)
+        cam2=""
+        for i in cam:
+            cam2+=str(i)+"-"
+        self.rm()
+        setCAm(cam2[:-1])
+        print(custo)
 
 
     def BFT(self):
         child = Popen(["./tsp_bf"],stdin=PIPE, stdout=PIPE)
         output = (child.communicate((str(nNodos)+setstring(L5)).encode())[0]).decode()
         print("TEMPO: "+output[10:-1]+" ms")
-
-
+    
+    def MCT(self):
+        child = Popen(["./tsp_mc"],stdin=PIPE, stdout=PIPE)
+        output = (child.communicate((str(nNodos)+setstring(L5)).encode())[0]).decode()
+        print("TEMPO: "+output[10:-1]+" ms")
     def NN(self):
         child = Popen(["./tsp_nn"],stdin=PIPE, stdout=PIPE)
         output = (child.communicate((str(nNodos)+setstring(L5)).encode())[0]).decode()
         (li,rescam)=output.split("RESPOSTA: ")
-        (custo,camtemp)=rescam.split("CAMINHO: ")#0-4-3-2-1-0
+        (custo,camtemp)=rescam.split("CAMINHO: ")
         (cam,tempo) = camtemp.split("DURACAO: ")
-        print(f"CUSTO:{int(custo)}\nTEMPO:{int(tempo)} ms")
+        custo=int(custo)+L5[int(cam[-3])][0]
+        print(f"CUSTO:{custo}\nTEMPO:{int(tempo)} ms")
         strip2moves("0 0\n"+li)
         resetMapa(screen)
         setCAm((cam[1:-1]+"0").replace(" ","-"))
@@ -335,8 +333,15 @@ class sim():
         strip2moves(li)
         resetMapa(screen)
         setCAm(cam)
-        
-
+    def DPT(self):
+        child = Popen(["./tsp_dp"],shell=True,stdin=PIPE, stdout=PIPE)
+        output = (child.communicate((str(nNodos)+setstring(L5)).encode())[0]).decode()
+        (li,rescam)=output.split("RESPOSTA: ")
+        (custo,camtemp)=rescam.split("CAMINHO: ")#0-4-3-2-1-0
+        (cam,tempo) = camtemp.split("DURACAO: ")
+        print(f"CUSTO:{int(custo)}\nTEMPO:{int(tempo)} ms")
+        resetMapa(screen)
+        setCAm(cam)
     def rm(self):
         resetMapa(screen)
 
